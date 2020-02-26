@@ -14,49 +14,99 @@
 </body>
 <script>
 
+var height = 600;
+var width = 600;
+var x = d3.scaleLinear([-5, 5], [0, width])
+var y = d3.scaleLinear([-5, 5], [height, 0])
+var line = d3.line()
+    .x(function(d) { return d.x; })
+    .y(function(d) { return d.y; });
+var svg;
+var drawing_time = 30;
+
+
 d3.select('#submit_fn')
     .on('click', function() {
         var fVal = d3.select('#finput').property('value');
-        //var vVal = d3.select('#vinput').property('value');
-        //var datapkg = fVal.concat('#', vVal);
         $.ajax({
             url: '/input_fn',
             type: 'POST',
             data: fVal,
-            success: function() {
-                display(fVal);
-            },
+            success: function() { display(fVal); },
             error: function(e) { console.log(e); }
         });
     });
 
 function initialize() {
     var pos = d3.mouse(this);
-        $.ajax({
-            url: '/input',
-            type: 'POST',
-            data: pos,
-            success: function(d) {
-                console.log('success');
-                //draw(d);
-            },
-            error: function(e) { console.log(e); }
-        });
+    pos[0] = x.invert(pos[0]);
+    pos[1] = y.invert(pos[1]);
+    var datapkg = pos.toString();
+    $.ajax({
+        url: '/input',
+        type: 'POST',
+        data: datapkg,
+        success: function(d) { runAlgs(d); },
+        error: function(e) { console.log(e); }
+    });
 }
+
+function drawPath(path_data, algname) {
+    var gradient_path_g = svg.append("g");
+    var gradient_path = gradient_path_g.selectAll(algname)
+        .data(path_data)
+        .enter()
+        .append("path")
+            .attr("d", line(path_data.slice(0,1)))
+            .attr("class", algname)
+            .attr("stroke-width", 3)
+            .attr("stroke", "black")
+            .attr("fill", "none")
+            .attr("stroke-opacity", 0.5)
+            .transition()
+            .duration(drawing_time)
+            .delay(function(d,i) { return drawing_time * i; })
+            .attr("d", function(d,i) { return line(path_data.slice(0,i+1));})
+        .remove();
+        gradient_path_g.append("path")
+            .attr("d", line(path_data))
+            .attr("class", algname)
+            .attr("stroke-width", 3)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-opacity", 0.5)
+            .attr("stroke-opacity", 0)
+            .transition()
+            .duration(path_data.length * drawing_time)
+            .attr("stroke-opacity", 0.5);
+}
+
+function runAlgs(d) {
+    var data = JSON.parse(d);
+    var pivot = {};
+    for (var a in data) {
+        pivot[a] = [];
+        var alg = data[a];
+        var xs = alg.x;
+        var ys = alg.y;
+        var t = alg.t;
+        for (var i = 0; i < 999; i++)
+            pivot[a].push({'x': x(xs[i]), 'y': y(ys[i])});
+    }
+    for (var a in data) {
+        drawPath(pivot[a], a);
+    }
+}
+
 
 function display(f) {
     var js_f = 'return '.concat(f);
     var value = new Function('x', 'y', js_f);
-    var height = 600;
-    var width = 600;
     d3.selectAll('svg').remove();
-    var svg = d3.select("#vis").append("svg")
+    svg = d3.select("#vis").append("svg")
         .attr("width", width)
         .attr("height", height)
         .on("click", initialize);
-    var x = d3.scaleLinear([-5, 5], [0, width])
-    var y = d3.scaleLinear([-5, 5], [height, 0])
-
     var q = 2;
     var x0 = -q / 2, x1 = width + q;
     var y0 = -q / 2, y1 = height + q;
@@ -93,7 +143,6 @@ function display(f) {
         //.interpolate(d3.interpolateHcl)
         .domain([fmin, fmax])
         .range([d3.rgb('#3b61eb'), d3.rgb('#eb4034')])
-    console.log(color(3));
     var xAxis = g => g
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisTop(x).ticks(width / height * 10))
