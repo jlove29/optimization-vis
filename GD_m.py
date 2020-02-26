@@ -33,6 +33,10 @@ class GD_m(Algorithm):
             for p in range(self.num_vars):
                 param = self.vars_ordered[p]
                 new_grad = self.calc_gradient(param, i)
+                if new_grad == 0:
+                    for j in range(i, self.max_iters-1):
+                        self.saved[p,j] = self.saved[p,i]
+                        return self.saved, self.convergence
                 '''
                 print(self.saved[p,i])
                 print(new_grad)
@@ -40,7 +44,7 @@ class GD_m(Algorithm):
                 '''
                 self.momentum = (self.mu * self.momentum) - (self.a * new_grad)
                 self.saved[p,i+1] = self.saved[p,i] + self.momentum
-                prev_sz[param] = abs(self.saved[p, i] - self.saved[p,i+1])
+                prev_sz[param] = abs(self.saved[p,i] - self.saved[p,i+1])
             i += 1
         return self.saved, self.convergence
 
@@ -63,13 +67,11 @@ class GD_m(Algorithm):
         return vals, min_t, choices[min_t_index]
 
 
-
 '''
-f = '(x+1)**2+(y**2)'
-init = {'x': 3, 'y': 1}
+f = '2**x - y**2'
+init = {'x': '4', 'y': '0.1'}
 newGD = GD_m(f)
 minimum, t, mu = newGD.perform(init, validation=True)
 print(minimum[:,999], t, mu)
-
 '''
 

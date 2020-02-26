@@ -35,3 +35,10 @@ class GD(Algorithm):
             i += 1
         return self.saved, self.convergence
 
+'''
+f = 'y**3 - x'
+init = {'x': '2.3499999999999996', 'y': '4.366666666666667'}
+newGD = GD(f)
+newGD.perform(init)
+'''
+

@@ -19,6 +19,7 @@ def get_input():
     x = raw[0][2:]
     y = raw[1][:-1]
     inits = {'x': x, 'y': y}
+    print(inits)
     mat = perform(f, inits)
     return json.dumps(mat)
 

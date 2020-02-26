@@ -5,25 +5,48 @@
 <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<head>
+    <style>
+        #algname {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        button {
+            transition-duration: 0.4s;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            transition-duration: 0.4s;
+            border-radius: 4px;
+            background-color: #abccdb;
+        }
+        button:hover {
+            background-color: #5d7e8f;
+            color: white;
+        }
+        body {
+            font-size: 20;
+        }
+    </style>
+</head>
 <body>
     Input function: <input id='finput'></input>
-    <button id='submit_fn'>Submit</button><br>
-    <!--Input initializations: <input id='vinput'></input>
-    <button id='submit'>Submit</button><br>-->
+    <button id='submit_fn'>Submit</button><br><br><hr><br>
     <div id='vis'></div>
 </body>
 <script>
 
 var height = 600;
 var width = 600;
-var x = d3.scaleLinear([-5, 5], [0, width])
-var y = d3.scaleLinear([-5, 5], [height, 0])
+var x = d3.scaleLinear([-1, 1], [0, width])
+var y = d3.scaleLinear([-1, 1], [height, 0])
 var line = d3.line()
     .x(function(d) { return d.x; })
     .y(function(d) { return d.y; });
 var svg;
 var drawing_time = 30;
-
 
 d3.select('#submit_fn')
     .on('click', function() {
@@ -55,9 +78,22 @@ function drawPath(path_data, algname) {
     var path = svg.append("path")
         .attr("d", line(path_data))
         .attr("stroke", "darkgrey")
-        .attr("stroke-width", "2")
+        .attr("stroke-width", "3")
         .attr("fill", "none")
-        .attr("class", "algpath");
+        .attr("class", "algpath")
+        .on("mouseover", function() {
+            d3.select(this).attr("stroke", "black");
+            var pos = d3.mouse(this);
+            svg.append('text')
+                .attr('x', pos[0])
+                .attr('y', pos[1])
+                .attr('id', 'algname')
+                .text(algname == 'GDm' ? 'GD with momentum' : algname);
+        })
+        .on("mouseout", function() {
+            d3.select(this).attr("stroke", "darkgrey");
+            d3.select('#algname').remove();
+        })
     var totalLength = path.node().getTotalLength();
     path
         .attr("stroke-dasharray", totalLength + " " + totalLength)
@@ -93,7 +129,7 @@ function display(f) {
         .attr("width", width)
         .attr("height", height)
         .on("click", initialize);
-    var q = 2;
+    var q = 100;
     var x0 = -q / 2, x1 = width + q;
     var y0 = -q / 2, y1 = height + q;
     var n = Math.ceil((x1 - x0) / q);
