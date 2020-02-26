@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from algorithm import Algorithm
 
 class Adam(Algorithm):
@@ -9,7 +9,7 @@ class Adam(Algorithm):
         self.velocity = 0
         self.a = 0.01
 
-    def single_trial(self, init, a=0.01, beta1=0.5, beta2=0.5):
+    def single_trial(self, init, a=0.01, beta1=0.6, beta2=0.2):
         self.saved = np.zeros((len(list(init)), self.max_iters))
         self.convergence = 0
         self.momentum = 0
@@ -50,7 +50,7 @@ class Adam(Algorithm):
             self.convergence = self.max_iters
         return self.saved, self.convergence
 
-    def perform(self, init, a=0.01, validation=True, beta1=0.5, beta2=0.5):
+    def perform(self, init, a=0.01, validation=True, beta1=0.6, beta2=0.2):
         self.a = a
         self.beta1 = beta1
         self.beta2 = beta2
@@ -72,8 +72,8 @@ class Adam(Algorithm):
                     min_t_b1 = m
                     min_t_b2 = n
                     vals = minimum
-                ys = minimum[1,:]
-                xs = range(len(ys))
+                #ys = minimum[1,:]
+                #xs = range(len(ys))
                 #plt.plot(xs, ys)
                 #plt.show()
                 #print(minimum[:,999], t, beta1_choices[m], beta2_choices[n])

@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from algorithm import Algorithm
 
 class GD_m(Algorithm):
@@ -7,7 +7,7 @@ class GD_m(Algorithm):
         super(GD_m, self).__init__(f)
         self.momentum = 0
 
-    def single_trial(self, init, a=0.01, mu=0.1):
+    def single_trial(self, init, a=0.01, mu=0.85):
         self.mu = mu
         self.saved = np.zeros((len(list(init)), self.max_iters))
         self.convergence = 0
@@ -44,7 +44,7 @@ class GD_m(Algorithm):
             i += 1
         return self.saved, self.convergence
 
-    def perform(self, init, a=0.01, validation=True, mu=0.01):
+    def perform(self, init, a=0.01, validation=True, mu=0.85):
         self.a = a
         self.momentum = 0
         if validation == True:

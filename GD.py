@@ -30,13 +30,7 @@ class GD(Algorithm):
             for p in range(self.num_vars):
                 param = self.vars_ordered[p]
                 new_grad = self.calc_gradient(param, i)
-                '''
-                print(self.saved[p,i])
-                print(new_grad)
-                print("---")
-                '''
                 self.saved[p,i+1] = self.saved[p,i] - (self.a * new_grad)
-                #print(self.saved[p,i+1], self.saved[p,i])
                 prev_sz[param] = abs(self.saved[p, i] - self.saved[p,i+1])
             i += 1
         return self.saved, self.convergence

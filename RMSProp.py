@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from algorithm import Algorithm
 
 class RMSProp(Algorithm):
@@ -7,7 +7,7 @@ class RMSProp(Algorithm):
         super(RMSProp, self).__init__(f)
         self.cache = [0 for p in range(self.num_vars)]
 
-    def single_trial(self, init, a=0.01, decay=0.1):
+    def single_trial(self, init, a=0.01, decay=0.75):
         self.decay = decay
         self.saved = np.zeros((len(list(init)), self.max_iters))
         self.convergence = 0
@@ -45,7 +45,7 @@ class RMSProp(Algorithm):
             i += 1
         return self.saved, self.convergence
 
-    def perform(self, init, a=0.01, validation=True, decay=0.1):
+    def perform(self, init, a=0.01, validation=True, decay=0.75):
         self.a = a
         if validation == True:
             choices = np.arange(0, 1, 0.05)
