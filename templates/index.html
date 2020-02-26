@@ -1,31 +1,18 @@
 <meta charset='utf-8'>
 <script src="https://d3js.org/d3.v5.min.js?v"></script>
 <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+<script src="https://d3js.org/d3-contour.v1.min.js"></script>
+<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <body>
     Input function: <input id='finput'></input>
     <button id='submit_fn'>Submit</button><br>
-    Input initializations: <input id='vinput'></input>
-    <button id='submit'>Submit</button><br>
+    <!--Input initializations: <input id='vinput'></input>
+    <button id='submit'>Submit</button><br>-->
     <div id='vis'></div>
 </body>
 <script>
-
-// INITIAL SETTINGS
-var buf = 15;
-var ww = window.innerWidth;
-var wh = window.innerHeight;
-var displaysz = {
-    'width': ww-buf,
-    'height': wh-buf
-}
-var container = d3.select('#vis').append('svg')
-    .attr('height', wh)
-    .attr('width', ww);
-var color = d3.scaleLinear()
-    .domain(-5, 5)
-    .interpolate(function() { return d3.interpolateYlGnBu; });
-var thresholds = d3.range(-5, 5, 0.5);
 
 d3.select('#submit_fn')
     .on('click', function() {
@@ -36,40 +23,111 @@ d3.select('#submit_fn')
             url: '/input_fn',
             type: 'POST',
             data: fVal,
-            success: function(d) {
-                display(d);
+            success: function() {
+                display(fVal);
             },
             error: function(e) { console.log(e); }
         });
     });
 
-d3.select('#submit')
-    .on('click', function() {
-        var fVal = d3.select('#finput').property('value');
-        //var vVal = d3.select('#vinput').property('value');
-        //var datapkg = fVal.concat('#', vVal);
+function initialize() {
+    var pos = d3.mouse(this);
         $.ajax({
             url: '/input',
             type: 'POST',
-            data: fVal,
+            data: pos,
             success: function(d) {
-                draw(d);
+                console.log('success');
+                //draw(d);
             },
             error: function(e) { console.log(e); }
         });
-    });
+}
 
-function display(d) {
+function display(f) {
+    var js_f = 'return '.concat(f);
+    var value = new Function('x', 'y', js_f);
+    var height = 600;
+    var width = 600;
+    d3.selectAll('svg').remove();
+    var svg = d3.select("#vis").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .on("click", initialize);
+    var x = d3.scaleLinear([-5, 5], [0, width])
+    var y = d3.scaleLinear([-5, 5], [height, 0])
+
+    var q = 2;
+    var x0 = -q / 2, x1 = width + q;
+    var y0 = -q / 2, y1 = height + q;
+    var n = Math.ceil((x1 - x0) / q);
+    var m = Math.ceil((y1 - y0) / q);
+    var grid = new Array(n * m);
+    var fmax = -1 * Infinity;
+    var fmin = Infinity;
+    for (let j = 0; j < m; ++j) {
+        for (let i = 0; i < n; ++i) {
+            var val = value(x.invert(i * q + x0), y.invert(j * q + y0));
+            grid[j * n + i] = val;
+            if (val < fmin) fmin = val;
+            if (val > fmax) fmax = val;
+        }
+    }
+    grid.x = -q;
+    grid.y = -q;
+    grid.k = q;
+    grid.n = n;
+    grid.m = m;
+    var transform = ({type, value, coordinates}) => {
+        return {type, value, coordinates: coordinates.map(rings => {
+            return rings.map(points => {
+                return points.map(([x, y]) => ([
+                    grid.x + grid.k * x,
+                    grid.y + grid.k * y
+                ]));
+            });
+        })};
+    }
+    var thresholds = d3.range(fmin, fmax);
+    var color = d3.scaleLinear()
+        //.interpolate(d3.interpolateHcl)
+        .domain([fmin, fmax])
+        .range([d3.rgb('#3b61eb'), d3.rgb('#eb4034')])
+    console.log(color(3));
+    var xAxis = g => g
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisTop(x).ticks(width / height * 10))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.selectAll(".tick").filter(d => x.domain().includes(d)).remove())
+    var yAxis = g => g
+        .attr("transform", "translate(-1,0)")
+        .call(d3.axisRight(y))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.selectAll(".tick").filter(d => y.domain().includes(d)).remove());
+
+    var cont = svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke", "#fff")
+        .attr("stroke-opacity", 0.5)
     var contours = d3.contours()
-        .size([ww, wh])
-        .thresholds(thresholds);
-    var path = container.selectAll("path")
-        .data(contours(d));
-    path.enter().append("path")
-        .attr("d", d3.geoPath(d3.geoIdentity().scale(ww / ww)))
-        .attr("fill", function(d) { return color(d.value); })
-        .attr("stroke", "none");
-    console.log(path);
+        .size([grid.n, grid.m])
+        .thresholds(thresholds)
+    (grid)
+        .map(transform);
+    svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke", "#fff")
+        .attr("stroke-opacity", 0)
+        .selectAll("path")
+        .data(contours)
+        .join("path")
+        .attr("fill", d => color(d.value))
+        .attr("d", d3.geoPath());
+    svg.append("g")
+        .call(xAxis);
+    svg.append("g")
+        .call(yAxis);
+    console.log("rendered");
 
 
 }
