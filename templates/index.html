@@ -5,32 +5,7 @@
 <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<head>
-    <style>
-        #algname {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-        button {
-            transition-duration: 0.4s;
-            border: none;
-            text-align: center;
-            text-decoration: none;
-            transition-duration: 0.4s;
-            border-radius: 4px;
-            background-color: #abccdb;
-        }
-        button:hover {
-            background-color: #5d7e8f;
-            color: white;
-        }
-        body {
-            font-size: 20;
-        }
-    </style>
-</head>
+<link type="text/css" rel="stylesheet" href="{{url_for('static', filename='stylesheet.css')}}"/>
 <body>
     Input function: <input id='finput'></input>
     <button id='submit_fn'>Submit</button><br><br><hr><br>
@@ -45,7 +20,9 @@ var y = d3.scaleLinear([-1, 1], [height, 0])
 var line = d3.line()
     .x(function(d) { return d.x; })
     .y(function(d) { return d.y; });
-var svg;
+var svg = d3.select("#vis").append("svg")
+    .attr("width", width)
+    .attr("height", height)
 var drawing_time = 30;
 
 d3.select('#submit_fn')
@@ -128,7 +105,7 @@ function display(f) {
     svg = d3.select("#vis").append("svg")
         .attr("width", width)
         .attr("height", height)
-        .on("click", initialize);
+        .on('click', initialize);
     var q = 100;
     var x0 = -q / 2, x1 = width + q;
     var y0 = -q / 2, y1 = height + q;
