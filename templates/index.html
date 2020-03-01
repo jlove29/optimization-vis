@@ -9,14 +9,19 @@
 <body>
     Input function: <input id='finput'></input>
     <button id='submit_fn'>Submit</button><br><br><hr><br>
-    <div id='vis'></div>
+    <div id='vis'></div><br><br>
+    <button id='zoomout'>zoom out</button>
+    <button id='zoomin'>zoom in</button>
+    <button id='inres'>increase res</button>
+    <button id='decres'>decrease res</button>
 </body>
 <script>
 
 var height = 600;
 var width = 600;
-var x = d3.scaleLinear([-1, 1], [0, width])
-var y = d3.scaleLinear([-1, 1], [height, 0])
+var zoom = 1;
+var x = d3.scaleLinear([-1*zoom, zoom], [0, width])
+var y = d3.scaleLinear([-1*zoom, zoom], [height, 0])
 var line = d3.line()
     .x(function(d) { return d.x; })
     .y(function(d) { return d.y; });
@@ -24,6 +29,8 @@ var svg = d3.select("#vis").append("svg")
     .attr("width", width)
     .attr("height", height)
 var drawing_time = 30;
+var f_saved = '';
+var q = 10;
 
 d3.select('#submit_fn')
     .on('click', function() {
@@ -32,9 +39,37 @@ d3.select('#submit_fn')
             url: '/input_fn',
             type: 'POST',
             data: fVal,
-            success: function() { display(fVal); },
+            success: function() {
+                f_saved = fVal;
+                display(fVal);
+            },
             error: function(e) { console.log(e); }
         });
+    });
+
+d3.select('#zoomout')
+    .on('click', function() {
+        zoom *= 1.5;
+        x = d3.scaleLinear([-1*zoom, zoom], [0, width])
+        y = d3.scaleLinear([-1*zoom, zoom], [height, 0])
+        display(f_saved);
+    });
+d3.select('#zoomin')
+    .on('click', function() {
+        zoom /= 1.5;
+        x = d3.scaleLinear([-1*zoom, zoom], [0, width])
+        y = d3.scaleLinear([-1*zoom, zoom], [height, 0])
+        display(f_saved);
+    });
+d3.select('#inres')
+    .on('click', function() {
+        q /= 1.5;
+        display(f_saved);
+    });
+d3.select('#decres')
+    .on('click', function() {
+        q *= 1.5;
+        display(f_saved);
     });
 
 function initialize() {
@@ -106,7 +141,6 @@ function display(f) {
         .attr("width", width)
         .attr("height", height)
         .on('click', initialize);
-    var q = 100;
     var x0 = -q / 2, x1 = width + q;
     var y0 = -q / 2, y1 = height + q;
     var n = Math.ceil((x1 - x0) / q);
