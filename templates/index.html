@@ -1,6 +1,5 @@
 <meta charset='utf-8'>
 <script src="https://d3js.org/d3.v5.min.js?v"></script>
-<script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
 <script src="https://d3js.org/d3-contour.v1.min.js"></script>
 <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
@@ -9,11 +8,15 @@
 <body>
     Input function: <input id='finput'></input>
     <button id='submit_fn'>Submit</button><br><br><hr><br>
-    <div id='vis'></div><br><br>
+    <div id='vis'></div><br>
+    <div id='convergence'></div>
+    <br>
     <button id='zoomout'>zoom out</button>
     <button id='zoomin'>zoom in</button>
-    <button id='inres'>increase res</button>
-    <button id='decres'>decrease res</button>
+    <button id='inres'>resolution +</button>
+    <button id='decres'>resolution -</button>
+    <button id='faster'>speed +</button>
+    <button id='slower'>speed -</button>
 </body>
 <script>
 
@@ -28,9 +31,9 @@ var line = d3.line()
 var svg = d3.select("#vis").append("svg")
     .attr("width", width)
     .attr("height", height)
-var drawing_time = 30;
 var f_saved = '';
 var q = 10;
+var time_scale = 50;
 
 d3.select('#submit_fn')
     .on('click', function() {
@@ -41,7 +44,7 @@ d3.select('#submit_fn')
             data: fVal,
             success: function() {
                 f_saved = fVal;
-                display(fVal);
+                display(f_saved);
             },
             error: function(e) { console.log(e); }
         });
@@ -66,10 +69,13 @@ d3.select('#inres')
         q /= 1.5;
         display(f_saved);
     });
-d3.select('#decres')
+d3.select('#faster')
     .on('click', function() {
-        q *= 1.5;
-        display(f_saved);
+        time_scale -= 10;
+    });
+d3.select('#slower')
+    .on('click', function() {
+        time_scale += 10;
     });
 
 function initialize() {
@@ -86,7 +92,7 @@ function initialize() {
     });
 }
 
-function drawPath(path_data, algname) {
+function drawPath(path_data, algname, t) {
     var path = svg.append("path")
         .attr("d", line(path_data))
         .attr("stroke", "darkgrey")
@@ -111,30 +117,54 @@ function drawPath(path_data, algname) {
         .attr("stroke-dasharray", totalLength + " " + totalLength)
         .attr("stroke-dashoffset", totalLength)
         .transition()
-            .duration(4000)
+            .duration(t)
             .ease(d3.easeLinear)
             .attr("stroke-dashoffset", 0)
 }
 
 function runAlgs(d) {
+    $('#convergence').html('');
     d3.selectAll('.algpath').remove();
     var data = JSON.parse(d);
     var pivot = {};
+    var times = {};
+    var results_string = '';
     for (var a in data) {
         pivot[a] = [];
-        var alg = data[a];
+        var alg = data[a]['steps'];
+        var conv = data[a]['time'];
+        times[a] = conv;
+        if (conv == 1000) conv = '1000+';
+        if (conv == 0) conv = 'Will not converge';
+        results_string += a;
+        results_string += ': ';
+        results_string += conv;
+        if (a != 'Adam') results_string += '&nbsp;&nbsp;&loz;&nbsp;&nbsp';
         var xs = alg.x;
         var ys = alg.y;
-        var t = alg.t;
         for (var i = 0; i < 999; i++)
             pivot[a].push({'x': x(xs[i]), 'y': y(ys[i])});
     }
-    for (var a in data) drawPath(pivot[a], a);
+    $('#convergence').html(results_string);
+    for (var a in data) drawPath(pivot[a], a, time_scale*times[a]);
 }
 
+function replaceMath(f) {
+    var res = f;
+    res = res.split('exp').join('Math.exp');
+    res = res.split('cos').join('Math.cos');
+    res = res.split('sin').join('Math.sin');
+    res = res.split('^').join('**');
+    res = res.split('sqrt').join('Math.sqrt');
+    res = res.split('pi').join('Math.PI');
+    console.log(res);
+    return res;
+}
 
 function display(f) {
-    var js_f = 'return '.concat(f);
+    $('#convergence').html('');
+    var f_replaced = replaceMath(f);
+    var js_f = 'return '.concat(f_replaced);
     var value = new Function('x', 'y', js_f);
     d3.selectAll('svg').remove();
     svg = d3.select("#vis").append("svg")

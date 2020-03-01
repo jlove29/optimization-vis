@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from algorithm import Algorithm
 
 class AdaGrad(Algorithm):

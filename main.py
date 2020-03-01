@@ -6,6 +6,8 @@ from RMSProp import RMSProp
 from Adam import Adam
 import csv
 import json
+import numpy as np
+import math
 
 app = Flask(__name__)
 
@@ -27,6 +29,7 @@ def get_input():
 def get_fn_input():
     raw = str(request.get_data())
     raw = raw[2:-1]
+    raw = replace_math(raw)
     global f
     f = raw
     return 'OK'
@@ -36,6 +39,16 @@ def write_matrix(mat, algname):
         writer = csv.writer(outfile)
         for i in range(999):
             writer.writerow(mat[:,i])
+
+def replace_math(f):
+    f = f.replace('^', '**')
+    f = f.replace('cos', 'math.cos')
+    f = f.replace('sin', 'math.sin')
+    f = f.replace('sqrt', 'np.sqrt')
+    f = f.replace('exp', 'math.e**')
+    f = f.replace('pi', 'math.pi')
+    print(f)
+    return f
 
 def perform(f, init):
 
@@ -74,11 +87,11 @@ def perform(f, init):
     min_Adam = min_Adam.tolist()
     min_Adam = {'x': min_Adam[0], 'y': min_Adam[1], 't': t_Adam}
 
-    return {'GD': min_GD,
-            'GDm': min_GDm,
-            'AdaGrad': min_AdaGrad,
-            'RMSProp': min_RMSProp,
-            'Adam': min_Adam}
+    return {'GD': {'steps': min_GD, 'time': t_GD},
+            'GDm': {'steps': min_GDm, 'time': t_GDm},
+            'AdaGrad': {'steps': min_AdaGrad, 'time': t_AdaGrad},
+            'RMSProp': {'steps': min_RMSProp, 'time': t_RMSProp},
+            'Adam': {'steps': min_Adam, 'time': t_Adam}}
 
 
 if __name__ == '__main__':
