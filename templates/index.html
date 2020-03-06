@@ -66,7 +66,14 @@ d3.select('#zoomin')
     });
 d3.select('#inres')
     .on('click', function() {
-        q /= 1.5;
+        //q /= 1.5;
+        q /= 10;
+        display(f_saved);
+    });
+d3.select('#decres')
+    .on('click', function() {
+        //q *= 1.5;
+        q *= 10;
         display(f_saved);
     });
 d3.select('#faster')
@@ -162,6 +169,7 @@ function replaceMath(f) {
 }
 
 function display(f) {
+    console.log(q);
     $('#convergence').html('');
     var f_replaced = replaceMath(f);
     var js_f = 'return '.concat(f_replaced);

@@ -23,16 +23,16 @@ class Algorithm():
             if self.vars_ordered[p] == param:
                 param_num = p
                 continue
-            f = f.replace(self.vars_ordered[p], str(self.saved[p,i]))
+            f = f.replace(self.vars_ordered[p], '(' + str(self.saved[p,i]) + ')')
         param_val = self.saved[param_num, i]
         if param_val > 1e+15 or param_val < -1e+15:
             #print("Will not converge")
             return None
-        step = 0.01
-        area = list(np.arange(param_val-0.1, param_val+0.1, step))
+        area = [param_val-0.01, param_val, param_val+0.01]
         try:
-            vals = np.asarray([eval(f.replace(param, '(' + str(i) + ')')) for i in area])
+            evals = [eval(f.replace(param, '(' + str(i) + ')')) for i in area]
+            vals = np.asarray(evals)
         except OverflowError:
             return None
-        grad = np.gradient(vals)[10]*(1.0/step)
+        grad = np.gradient(vals)[1]*100
         return grad

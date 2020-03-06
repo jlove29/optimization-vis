@@ -39,14 +39,15 @@ class RMSProp(Algorithm):
                     for j in range(i, self.max_iters-1):
                         self.saved[p,j] = self.saved[p,i]
                     return self.saved, 0
-                self.cache[p] += (decay * self.cache[p]) + ((1-decay) * (new_grad**2))
+                self.cache[p] = (self.decay * self.cache[p]) + ((1-self.decay) * (new_grad**2))
                 self.saved[p,i+1] = self.saved[p,i] - self.a*((new_grad * (1.0/np.sqrt(self.cache[p] + 1e-8))))
                 prev_sz[param] = abs(self.saved[p, i] - self.saved[p,i+1])
             i += 1
         return self.saved, self.convergence
 
-    def perform(self, init, a=0.01, validation=True, decay=0.9):
+    def perform(self, init, a=0.01, validation=True, decay=0.99):
         self.a = a
+        self.decay = decay
         if validation == True:
             choices = np.arange(0, 1, 0.05)
         else:
