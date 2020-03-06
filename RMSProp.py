@@ -8,7 +8,7 @@ class RMSProp(Algorithm):
         super(RMSProp, self).__init__(f)
         self.cache = [0 for p in range(self.num_vars)]
 
-    def single_trial(self, init, a=0.01, decay=0.75):
+    def single_trial(self, init, decay=0.9):
         self.decay = decay
         self.saved = np.zeros((len(list(init)), self.max_iters))
         self.convergence = 0
@@ -35,18 +35,17 @@ class RMSProp(Algorithm):
             for p in range(self.num_vars):
                 param = self.vars_ordered[p]
                 new_grad = self.calc_gradient(param, i)
+                if new_grad == None:
+                    for j in range(i, self.max_iters-1):
+                        self.saved[p,j] = self.saved[p,i]
+                    return self.saved, 0
                 self.cache[p] += (decay * self.cache[p]) + ((1-decay) * (new_grad**2))
-                '''
-                print(self.saved[p,i])
-                print(new_grad)
-                print("---")
-                '''
-                self.saved[p,i+1] = self.saved[p,i] - (new_grad * (1.0/np.sqrt(self.cache[p] + 1e-8)))
+                self.saved[p,i+1] = self.saved[p,i] - self.a*((new_grad * (1.0/np.sqrt(self.cache[p] + 1e-8))))
                 prev_sz[param] = abs(self.saved[p, i] - self.saved[p,i+1])
             i += 1
         return self.saved, self.convergence
 
-    def perform(self, init, a=0.01, validation=True, decay=0.75):
+    def perform(self, init, a=0.01, validation=True, decay=0.9):
         self.a = a
         if validation == True:
             choices = np.arange(0, 1, 0.05)

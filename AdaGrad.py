@@ -32,13 +32,12 @@ class AdaGrad(Algorithm):
             for p in range(self.num_vars):
                 param = self.vars_ordered[p]
                 new_grad = self.calc_gradient(param, i)
+                if new_grad == None:
+                    for j in range(i, self.max_iters-1):
+                        self.saved[p,j] = self.saved[p, i]
+                    return self.saved, 0
                 self.cache[p] += new_grad**2
-                '''
-                print(self.saved[p,i])
-                print(new_grad)
-                print("---")
-                '''
-                self.saved[p,i+1] = self.saved[p,i] - (new_grad * (1.0/np.sqrt(self.cache[p] + 1e-8)))
+                self.saved[p,i+1] = self.saved[p,i] - self.a*((new_grad * (1.0/np.sqrt(self.cache[p] + 1e-8))))
                 prev_sz[param] = abs(self.saved[p, i] - self.saved[p,i+1])
             i += 1
         return self.saved, self.convergence

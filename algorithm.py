@@ -26,13 +26,13 @@ class Algorithm():
             f = f.replace(self.vars_ordered[p], str(self.saved[p,i]))
         param_val = self.saved[param_num, i]
         if param_val > 1e+15 or param_val < -1e+15:
-            print("Will not converge")
-            return 0
+            #print("Will not converge")
+            return None
         step = 0.01
         area = list(np.arange(param_val-0.1, param_val+0.1, step))
         try:
             vals = np.asarray([eval(f.replace(param, '(' + str(i) + ')')) for i in area])
         except OverflowError:
-            return 0
+            return None
         grad = np.gradient(vals)[10]*(1.0/step)
         return grad

@@ -8,9 +8,8 @@ class Adam(Algorithm):
         super(Adam, self).__init__(f)
         self.momentum = 0
         self.velocity = 0
-        self.a = 0.01
 
-    def single_trial(self, init, a=0.01, beta1=0.6, beta2=0.2):
+    def single_trial(self, init, beta1=0.9, beta2=0.99):
         self.saved = np.zeros((len(list(init)), self.max_iters))
         self.convergence = 0
         self.momentum = 0
@@ -51,7 +50,7 @@ class Adam(Algorithm):
             self.convergence = self.max_iters
         return self.saved, self.convergence
 
-    def perform(self, init, a=0.01, validation=True, beta1=0.6, beta2=0.2):
+    def perform(self, init, a=0.01, validation=True, beta1=0.9, beta2=0.99):
         self.a = a
         self.beta1 = beta1
         self.beta2 = beta2

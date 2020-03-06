@@ -8,7 +8,7 @@ class GD_m(Algorithm):
         super(GD_m, self).__init__(f)
         self.momentum = 0
 
-    def single_trial(self, init, a=0.01, mu=0.85):
+    def single_trial(self, init, a=0.01, mu=0.9):
         self.mu = mu
         self.saved = np.zeros((len(list(init)), self.max_iters))
         self.convergence = 0
@@ -34,22 +34,18 @@ class GD_m(Algorithm):
             for p in range(self.num_vars):
                 param = self.vars_ordered[p]
                 new_grad = self.calc_gradient(param, i)
-                if new_grad == 0:
-                    for j in range(i, self.max_iters-1):
-                        self.saved[p,j] = self.saved[p,i]
-                        return self.saved, self.convergence
-                '''
-                print(self.saved[p,i])
-                print(new_grad)
-                print("---")
-                '''
+                if new_grad == None:
+                    self.saved[p,i+1] = self.saved[p,i]
+                    i += 1
+                    self.convergence = 0
+                    continue
                 self.momentum = (self.mu * self.momentum) - (self.a * new_grad)
                 self.saved[p,i+1] = self.saved[p,i] + self.momentum
                 prev_sz[param] = abs(self.saved[p,i] - self.saved[p,i+1])
             i += 1
         return self.saved, self.convergence
 
-    def perform(self, init, a=0.01, validation=True, mu=0.85):
+    def perform(self, init, a=0.01, validation=True, mu=0.9):
         self.a = a
         self.momentum = 0
         if validation == True:
@@ -68,11 +64,4 @@ class GD_m(Algorithm):
         return vals, min_t, choices[min_t_index]
 
 
-'''
-f = '2**x - y**2'
-init = {'x': '4', 'y': '0.1'}
-newGD = GD_m(f)
-minimum, t, mu = newGD.perform(init, validation=True)
-print(minimum[:,999], t, mu)
-'''
 
