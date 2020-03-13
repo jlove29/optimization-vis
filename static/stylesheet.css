@@ -30,10 +30,26 @@ body {
 input {
     line-height: 1.5;
     font-family: franklin-small;
-    width: 300px;
+    width: 75%;
+}
+.lightfont {
+    font-size: 12;
+    line-height: 1.7;
+    font-family: franklin-small;
 }
 
 svg {
     border-style: solid;
     border-width: 0.1;
+}
+#vis {
+    float: left;
+}
+#instructions {
+    float: left;
+    padding-left: 10px;
+}
+#buttons {
+    clear: left;
+    width: 100%;
 }

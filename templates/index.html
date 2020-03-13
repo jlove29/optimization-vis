@@ -6,17 +6,36 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='stylesheet.css')}}"/>
 <body>
-    Input function: <input id='finput'></input>
-    <button id='submit_fn'>Submit</button><br><br><hr><br>
-    <div id='vis'></div><br>
-    <div id='convergence'></div>
+    <div id='vis'></div>
+    <div id='instructions'>
+        Optimization Algorithm Visualizer
+        <br><br>
+        1. Input function f(x,y)<br>
+        <input id='finput'></input>
+        <button id='submit_fn'>Submit</button>
+        <br>
+        <div class='lightfont'>
+            Examples:<br>
+            x^2 + y^2<br>
+            exp(sqrt(x^2+y^2) - sin(y)*cos(y))
+        </div>
+        <br>
+        2. Initialize algorithms
+        <div class='lightfont'>
+            Click anywhere on the graph to provide an initial (x,y).<br>
+            Hover to identify each algorithm.<br>
+        </div>
+        <br>
+        <div class='lightfont'>
+            Adjust the zoom level and the speed.
+        </div>
+        <button id='zoomout'>zoom out</button>
+        <button id='zoomin'>zoom in</button>
+        <button id='faster'>speed +</button>
+        <button id='slower'>speed -</button>
+        <br><br><hr><br>
+    </div>
     <br>
-    <button id='zoomout'>zoom out</button>
-    <button id='zoomin'>zoom in</button>
-    <button id='inres'>resolution +</button>
-    <button id='decres'>resolution -</button>
-    <button id='faster'>speed +</button>
-    <button id='slower'>speed -</button>
 </body>
 <script>
 
@@ -62,18 +81,6 @@ d3.select('#zoomin')
         zoom /= 1.5;
         x = d3.scaleLinear([-1*zoom, zoom], [0, width])
         y = d3.scaleLinear([-1*zoom, zoom], [height, 0])
-        display(f_saved);
-    });
-d3.select('#inres')
-    .on('click', function() {
-        //q /= 1.5;
-        q /= 10;
-        display(f_saved);
-    });
-d3.select('#decres')
-    .on('click', function() {
-        //q *= 1.5;
-        q *= 10;
         display(f_saved);
     });
 d3.select('#faster')
@@ -130,7 +137,6 @@ function drawPath(path_data, algname, t) {
 }
 
 function runAlgs(d) {
-    $('#convergence').html('');
     d3.selectAll('.algpath').remove();
     var data = JSON.parse(d);
     var pivot = {};
@@ -152,7 +158,6 @@ function runAlgs(d) {
         for (var i = 0; i < 999; i++)
             pivot[a].push({'x': x(xs[i]), 'y': y(ys[i])});
     }
-    $('#convergence').html(results_string);
     for (var a in data) drawPath(pivot[a], a, time_scale*times[a]);
 }
 
@@ -169,8 +174,6 @@ function replaceMath(f) {
 }
 
 function display(f) {
-    console.log(q);
-    $('#convergence').html('');
     var f_replaced = replaceMath(f);
     var js_f = 'return '.concat(f_replaced);
     var value = new Function('x', 'y', js_f);
